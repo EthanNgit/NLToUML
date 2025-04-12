@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLToUML - Text to UML Generator</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>NLToUML</h1>
+            <p>Transform descriptions into UML diagrams</p>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <div class="text-input-container">
+                    <textarea id="text-input" placeholder="Describe the image you want to generate..."></textarea>
+                    <div class="character-count">0/300</div>
+                </div>
+                
+                <div class="controls">
+                    <div class="dropdown-section">
+                        <div class="dropdown-container">
+                            <label for="method-dropdown">Diagram Type</label>
+                            <div class="custom-dropdown" id="method-dropdown-container">
+                                <div class="selected-option">
+                                    <span>Select diagram type</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <ul class="dropdown-options" id="method-options">
+                                    <li class="loading">Loading diagram types...</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown-container">
+                            <label for="type-dropdown">Generation method</label>
+                            <div class="custom-dropdown" id="type-dropdown-container">
+                                <div class="selected-option">
+                                    <span>Select generation method</span>
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                                <ul class="dropdown-options" id="type-options">
+                                    <li class="loading">Loading generation methods...</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button id="generate-btn" disabled>
+                        <span class="btn-text">Generate Image</span>
+                        <span class="btn-icon"><i class="fas fa-wand-magic-sparkles"></i></span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="output-section">
+                <div class="image-container" id="image-container">
+                    <div class="placeholder-content">
+                        <i class="fas fa-image"></i>
+                        <p>Your generated image will appear here</p>
+                    </div>
+                </div>
+                <div class="generation-info">
+                    <div class="info-item">
+                        <span class="info-label">Resolution:</span>
+                        <span class="info-value" id="resolution-info">1024×1024</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Generation time:</span>
+                        <span class="info-value" id="generation-time">-</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const textInput = document.getElementById('text-input');
+            const characterCount = document.querySelector('.character-count');
+            const generateBtn = document.getElementById('generate-btn');
+            const imageContainer = document.getElementById('image-container');
+            const methodDropdownContainer = document.getElementById('method-dropdown-container');
+            const methodOptions = document.getElementById('method-options');
+            const typeDropdownContainer = document.getElementById('type-dropdown-container');
+            const typeOptions = document.getElementById('type-options');
+            const generationTime = document.getElementById('generation-time');
+            
+            textInput.addEventListener('input', () => {
+                const text = textInput.value;
+                const count = text.length;
+                characterCount.textContent = `${count}/300`;
+                
+                generateBtn.disabled = count === 0;
+                
+                if (count > 300) {
+                    textInput.value = text.slice(0, 300);
+                    characterCount.textContent = '300/300';
+                }
+            });
+            
+            function toggleDropdown(container) {
+                container.classList.toggle('active');
+            }
+            
+            document.addEventListener('click', (e) => {
+                if (!methodDropdownContainer.contains(e.target)) {
+                    methodDropdownContainer.classList.remove('active');
+                }
+                if (!typeDropdownContainer.contains(e.target)) {
+                    typeDropdownContainer.classList.remove('active');
+                }
+            });
+            
+            methodDropdownContainer.querySelector('.selected-option').addEventListener('click', () => {
+                toggleDropdown(methodDropdownContainer);
+            });
+            
+            typeDropdownContainer.querySelector('.selected-option').addEventListener('click', () => {
+                toggleDropdown(typeDropdownContainer);
+            });
+            
+            generateBtn.addEventListener('click', () => {
+                generateImage();
+            });
+            
+            async function fetchDiagramTypes() {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    
+                    const methods = [
+                        { id: '1', name: 'Class diagram' },
+                        { id: '2', name: 'Use case diagram' },
+                        { id: '3', name: 'Component diagram' },
+                        { id: '4', name: 'Sequence diagram' },
+                        { id: '5', name: 'Activity diagram' },
+                    ];
+                    
+                    methodOptions.innerHTML = '';
+                    methods.forEach(method => {
+                        const li = document.createElement('li');
+                        li.dataset.id = method.id;
+                        li.textContent = method.name;
+                        
+                        li.addEventListener('click', () => {
+                            methodDropdownContainer.querySelector('.selected-option span').textContent = method.name;
+                            toggleDropdown(methodDropdownContainer);
+                        });
+                        
+                        methodOptions.appendChild(li);
+                    });
+                } catch (error) {
+                    methodOptions.innerHTML = '<li class="error">Failed to load diagram types</li>';
+                    console.error('Error fetching diagram types:', error);
+                }
+            }
+            
+            async function fetchGenerationMethods() {
+                try {
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    const types = [
+                        { id: '1', name: 'UCO', icon: 'fa-mountain' },
+                        { id: '2', name: 'OpenAi', icon: 'fa-city' },
+                        { id: '3', name: 'DeepSeek', icon: 'fa-user' },
+                        { id: '4', name: 'Gemini', icon: 'fa-palette' },
+                    ];
+                    
+                    typeOptions.innerHTML = '';
+                    types.forEach(type => {
+                        const li = document.createElement('li');
+                        li.dataset.id = type.id;
+                        li.innerHTML = `
+                            <i class="fas ${type.icon}"></i>
+                            <span>${type.name}</span>
+                        `;
+                        
+                        li.addEventListener('click', () => {
+                            typeDropdownContainer.querySelector('.selected-option span').innerHTML = `
+                                <i class="fas ${type.icon}"></i>
+                                <span>${type.name}</span>
+                            `;
+                            toggleDropdown(typeDropdownContainer);
+                        });
+                        
+                        typeOptions.appendChild(li);
+                    });
+                } catch (error) {
+                    typeOptions.innerHTML = '<li class="error">Failed to load generation methods</li>';
+                    console.error('Error fetching generation methods:', error);
+                }
+            }
+            
+            async function generateImage() {
+                const promptText = textInput.value;
+                const methodText = methodDropdownContainer.querySelector('.selected-option span').textContent;
+                const typeText = typeDropdownContainer.querySelector('.selected-option span').textContent;
+                
+                if (!promptText || methodText === 'Select method' || typeText === 'Select type') {
+                    alert('Please provide all required inputs: text prompt, method, and type.');
+                    return;
+                }
+                
+                generateBtn.disabled = true;
+                generateBtn.classList.add('loading');
+                generateBtn.querySelector('.btn-text').textContent = 'Generating...';
+                
+                imageContainer.innerHTML = `
+                    <div class="loading-animation">
+                        <div class="loading-spinner"></div>
+                        <p>Generating your image...</p>
+                    </div>
+                `;
+                
+                try {
+                    const startTime = new Date();
+                    
+                    await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 1000));
+                    
+                    const endTime = new Date();
+                    const timeDiff = (endTime - startTime) / 1000;
+                    generationTime.textContent = `${timeDiff.toFixed(1)}s`;
+                    
+                    imageContainer.innerHTML = `
+                        <img src="/api/placeholder/512/512" alt="Generated image based on prompt: ${promptText}" />
+                    `;
+                    
+                } catch (error) {
+                    imageContainer.innerHTML = `
+                        <div class="error-message">
+                            <i class="fas fa-exclamation-circle"></i>
+                            <p>Failed to generate image. Please try again.</p>
+                        </div>
+                    `;
+                    console.error('Error generating image:', error);
+                } finally {
+                    generateBtn.disabled = false;
+                    generateBtn.classList.remove('loading');
+                    generateBtn.querySelector('.btn-text').textContent = 'Generate Image';
+                }
+            }
+            
+            fetchDiagramTypes();
+            fetchGenerationMethods();
+        });
+    </script>
+</body>
+</html>
