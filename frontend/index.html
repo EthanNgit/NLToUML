@@ -18,32 +18,32 @@
             <div class="input-section">
                 <div class="text-input-container">
                     <textarea id="text-input" placeholder="Describe the image you want to generate..."></textarea>
-                    <div class="character-count">0/300</div>
+                    <div class="character-count">0/1000</div>
                 </div>
                 
                 <div class="controls">
                     <div class="dropdown-section">
                         <div class="dropdown-container">
-                            <label for="method-dropdown">Diagram Type</label>
-                            <div class="custom-dropdown" id="method-dropdown-container">
+                            <label for="type-dropdown">Diagram Type</label>
+                            <div class="custom-dropdown" id="type-dropdown-container">
                                 <div class="selected-option">
                                     <span>Select diagram type</span>
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
-                                <ul class="dropdown-options" id="method-options">
+                                <ul class="dropdown-options" id="type-options">
                                     <li class="loading">Loading diagram types...</li>
                                 </ul>
                             </div>
                         </div>
                         
                         <div class="dropdown-container">
-                            <label for="type-dropdown">Generation method</label>
-                            <div class="custom-dropdown" id="type-dropdown-container">
+                            <label for="method-dropdown">Generation method</label>
+                            <div class="custom-dropdown" id="method-dropdown-container">
                                 <div class="selected-option">
                                     <span>Select generation method</span>
                                     <i class="fas fa-chevron-down"></i>
                                 </div>
-                                <ul class="dropdown-options" id="type-options">
+                                <ul class="dropdown-options" id="method-options">
                                     <li class="loading">Loading generation methods...</li>
                                 </ul>
                             </div>
@@ -67,7 +67,7 @@
                 <div class="generation-info">
                     <div class="info-item">
                         <span class="info-label">Resolution:</span>
-                        <span class="info-value" id="resolution-info">1024×1024</span>
+                        <span class="info-value" id="resolution-info">-</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">Generation time:</span>
@@ -76,6 +76,20 @@
                 </div>
             </div>
         </main>
+    </div>
+
+    <div class="modal-container" id="zoom-modal">
+        <div class="modal-content">
+            <button class="close-modal">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="modal-image-container">
+                <img id="modal-image" alt="Zoomed diagram">
+            </div>
+            <div class="modal-info">
+                <span id="modal-resolution"></span>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -89,17 +103,22 @@
             const typeDropdownContainer = document.getElementById('type-dropdown-container');
             const typeOptions = document.getElementById('type-options');
             const generationTime = document.getElementById('generation-time');
+            const resolutionInfo = document.getElementById('resolution-info');
+            const zoomModal = document.getElementById('zoom-modal');
+            const modalImage = document.getElementById('modal-image');
+            const modalResolution = document.getElementById('modal-resolution');
+            const closeModalBtn = document.querySelector('.close-modal');
             
             textInput.addEventListener('input', () => {
                 const text = textInput.value;
                 const count = text.length;
-                characterCount.textContent = `${count}/300`;
+                characterCount.textContent = `${count}/1000`;
                 
                 generateBtn.disabled = count === 0;
                 
-                if (count > 300) {
-                    textInput.value = text.slice(0, 300);
-                    characterCount.textContent = '300/300';
+                if (count > 1000) {
+                    textInput.value = text.slice(0, 1000);
+                    characterCount.textContent = '1000/1000';
                 }
             });
             
@@ -124,37 +143,65 @@
                 toggleDropdown(typeDropdownContainer);
             });
             
+            closeModalBtn.addEventListener('click', () => {
+                zoomModal.classList.remove('active');
+                document.body.classList.remove('modal-open');
+            });
+            
+            zoomModal.addEventListener('click', (e) => {
+                if (e.target === zoomModal) {
+                    zoomModal.classList.remove('active');
+                    document.body.classList.remove('modal-open');
+                }
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && zoomModal.classList.contains('active')) {
+                    zoomModal.classList.remove('active');
+                    document.body.classList.remove('modal-open');
+                }
+            });
+            
             generateBtn.addEventListener('click', () => {
                 generateImage();
             });
             
+            function openImageModal(imageUrl, width, height) {
+                modalImage.src = imageUrl;
+                modalResolution.textContent = `Resolution: ${width}×${height}`;
+                zoomModal.classList.add('active');
+                document.body.classList.add('modal-open');
+            }
+            
             async function fetchDiagramTypes() {
-                try {
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                try {                    
+                    const response = await fetch("http://localhost:8080/api/uml/v1/diagrams", {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
+                    });
+
+                    const data = await response.json();
+
+                    const types = data.map((name, index) => ({
+                        id: (index + 1).toString(),
+                        name: `${name}`,
+                    }));
                     
-                    const methods = [
-                        { id: '1', name: 'Class diagram' },
-                        { id: '2', name: 'Use case diagram' },
-                        { id: '3', name: 'Component diagram' },
-                        { id: '4', name: 'Sequence diagram' },
-                        { id: '5', name: 'Activity diagram' },
-                    ];
-                    
-                    methodOptions.innerHTML = '';
-                    methods.forEach(method => {
+                    typeOptions.innerHTML = '';
+                    types.forEach(types => {
                         const li = document.createElement('li');
-                        li.dataset.id = method.id;
-                        li.textContent = method.name;
+                        li.dataset.id = types.id;
+                        li.textContent = types.name;
                         
                         li.addEventListener('click', () => {
-                            methodDropdownContainer.querySelector('.selected-option span').textContent = method.name;
-                            toggleDropdown(methodDropdownContainer);
+                            typeDropdownContainer.querySelector('.selected-option span').textContent = types.name;
+                            toggleDropdown(typeDropdownContainer);
                         });
                         
-                        methodOptions.appendChild(li);
+                        typeOptions.appendChild(li);
                     });
                 } catch (error) {
-                    methodOptions.innerHTML = '<li class="error">Failed to load diagram types</li>';
+                    typeOptions.innerHTML = '<li class="error">Failed to load diagram types</li>';
                     console.error('Error fetching diagram types:', error);
                 }
             }
@@ -162,73 +209,149 @@
             async function fetchGenerationMethods() {
                 try {
                     await new Promise(resolve => setTimeout(resolve, 2000));
-                    
-                    const types = [
-                        { id: '1', name: 'UCO', icon: 'fa-mountain' },
-                        { id: '2', name: 'OpenAi', icon: 'fa-city' },
-                        { id: '3', name: 'DeepSeek', icon: 'fa-user' },
-                        { id: '4', name: 'Gemini', icon: 'fa-palette' },
-                    ];
-                    
-                    typeOptions.innerHTML = '';
-                    types.forEach(type => {
-                        const li = document.createElement('li');
-                        li.dataset.id = type.id;
-                        li.innerHTML = `
-                            <i class="fas ${type.icon}"></i>
-                            <span>${type.name}</span>
-                        `;
-                        
-                        li.addEventListener('click', () => {
-                            typeDropdownContainer.querySelector('.selected-option span').innerHTML = `
-                                <i class="fas ${type.icon}"></i>
-                                <span>${type.name}</span>
-                            `;
-                            toggleDropdown(typeDropdownContainer);
-                        });
-                        
-                        typeOptions.appendChild(li);
+
+                    const response = await fetch("http://localhost:8080/api/uml/v1/methods", {
+                        method: "GET",
+                        headers: { "Content-Type": "application/json" },
                     });
+
+                    const data = await response.json();
+
+                    methodOptions.innerHTML = '';
+
+                    for (let i = 0; i < data.length; i++) {
+                        const methodName = data[i];
+                        const id = (i + 1).toString();
+                        const displayName = `${methodName}`;
+                        const iconPath = `/icons/${methodName.toLowerCase()}.svg`;
+
+                        const li = document.createElement('li');
+                        li.dataset.id = id;
+
+                        try {
+                            const svgRes = await fetch(iconPath);
+                            if (!svgRes.ok) throw new Error('SVG not found');
+                            const svgText = await svgRes.text();
+
+                            li.innerHTML = `
+                                <span class="icon-wrapper">${svgText}</span>
+                                <span>${displayName}</span>
+                            `;
+                        } catch {
+                            li.innerHTML = `
+                                <i class="fas fa-cube"></i>
+                                <span>${displayName}</span>
+                            `;
+                        }
+
+                        li.dataset.name = methodName;
+
+                        li.addEventListener('click', () => {
+                            const selected = methodDropdownContainer.querySelector('.selected-option span');
+                            selected.textContent = methodName;
+                            selected.dataset.value = methodName;
+                            toggleDropdown(methodDropdownContainer);
+                        });
+
+                        methodOptions.appendChild(li);
+                    }
                 } catch (error) {
-                    typeOptions.innerHTML = '<li class="error">Failed to load generation methods</li>';
+                    methodOptions.innerHTML = '<li class="error">Failed to load generation methods</li>';
                     console.error('Error fetching generation methods:', error);
                 }
             }
             
             async function generateImage() {
                 const promptText = textInput.value;
-                const methodText = methodDropdownContainer.querySelector('.selected-option span').textContent;
-                const typeText = typeDropdownContainer.querySelector('.selected-option span').textContent;
-                
-                if (!promptText || methodText === 'Select method' || typeText === 'Select type') {
+                const methodText = methodDropdownContainer.querySelector('.selected-option span').textContent.trim();
+                const typeText = typeDropdownContainer.querySelector('.selected-option span').textContent.trim();
+
+                if (!promptText || methodText === 'Select generation method' || typeText === 'Select diagram type') {
                     alert('Please provide all required inputs: text prompt, method, and type.');
                     return;
                 }
-                
+
                 generateBtn.disabled = true;
                 generateBtn.classList.add('loading');
                 generateBtn.querySelector('.btn-text').textContent = 'Generating...';
                 
+                resolutionInfo.textContent = '-';
+
                 imageContainer.innerHTML = `
                     <div class="loading-animation">
                         <div class="loading-spinner"></div>
                         <p>Generating your image...</p>
                     </div>
                 `;
-                
+
+                const requestBody = {
+                    text: promptText.trim(),
+                    diagramType: typeText.trim(),        
+                    generationMethod: methodText.trim()
+                };
+
+                const startTime = new Date();
+
                 try {
-                    const startTime = new Date();
+                    const response = await fetch("http://localhost:8080/api/uml/v1/process", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Server error: ${response.status}`);
+                    }
+
+                    const blob = await response.blob();
+                    const imageUrl = URL.createObjectURL(blob);
                     
-                    await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 1000));
+                    const img = new Image();
+                    img.onload = function() {
+                        const width = this.naturalWidth;
+                        const height = this.naturalHeight;
+                        
+                        resolutionInfo.textContent = `${width}×${height}`;
+                        
+                        imageContainer.innerHTML = '';
+                        imageContainer.appendChild(img);
+                        
+                        if (width > 800 || height > 800) {
+                            imageContainer.classList.add('large-image');
+                        } else {
+                            imageContainer.classList.remove('large-image');
+                        }
+                        
+                        img.alt = `Generated diagram for: ${promptText}`;
+                        img.classList.add('generated-image');
+                        
+                        img.classList.add('zoomable');
+                        img.addEventListener('click', () => {
+                            openImageModal(imageUrl, width, height);
+                        });
+                        
+                        const zoomIndicator = document.createElement('div');
+                        zoomIndicator.className = 'zoom-indicator';
+                        zoomIndicator.innerHTML = '<i class="fas fa-search-plus"></i>';
+                        imageContainer.appendChild(zoomIndicator);
+                    };
                     
+                    img.onerror = function() {
+                        imageContainer.innerHTML = `
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-circle"></i>
+                                <p>Failed to load image. Please try again.</p>
+                            </div>
+                        `;
+                    };
+                    
+                    img.src = imageUrl;
+
                     const endTime = new Date();
                     const timeDiff = (endTime - startTime) / 1000;
                     generationTime.textContent = `${timeDiff.toFixed(1)}s`;
-                    
-                    imageContainer.innerHTML = `
-                        <img src="/api/placeholder/512/512" alt="Generated image based on prompt: ${promptText}" />
-                    `;
-                    
                 } catch (error) {
                     imageContainer.innerHTML = `
                         <div class="error-message">
@@ -243,6 +366,7 @@
                     generateBtn.querySelector('.btn-text').textContent = 'Generate Image';
                 }
             }
+
             
             fetchDiagramTypes();
             fetchGenerationMethods();

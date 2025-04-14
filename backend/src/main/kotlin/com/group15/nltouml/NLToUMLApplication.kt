@@ -4,8 +4,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 
 @SpringBootApplication
-class NltoumlApplication
+class NLToUMLApplication
 
 fun main(args: Array<String>) {
-	runApplication<NltoumlApplication>(*args)
+	runApplication<NLToUMLApplication>(*args)
 }
