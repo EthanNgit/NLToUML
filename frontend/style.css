@@ -468,6 +468,7 @@ main {
   font-size: 3rem;
 }
 
+/* Improved fix for the modal image viewing functionality */
 .modal-container {
   position: fixed;
   top: 0;
@@ -482,8 +483,8 @@ main {
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.3s ease, visibility 0.3s ease;
-  overflow: auto;
-  padding: 30px;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .modal-container.active {
@@ -494,15 +495,15 @@ main {
 .modal-content {
   background-color: white;
   border-radius: var(--border-radius);
-  max-width: 90%;
-  max-height: 90%;
+  width: 90%;
+  height: 90%;
+  max-width: 1600px;
   display: flex;
   flex-direction: column;
   position: relative;
   box-shadow: var(--shadow-lg);
   transform: scale(0.9);
   transition: transform 0.3s ease;
-  overflow: hidden;
 }
 
 .modal-container.active .modal-content {
@@ -535,26 +536,29 @@ main {
 }
 
 .modal-image-container {
+  flex: 1;
   overflow: auto;
-  padding: 30px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  position: relative;
+  padding: 0;
+  width: 100%;
 }
 
+/* Use position to center and ensure full visibility */
 .modal-image-container img {
-  max-width: 100%;
-  height: auto;
   display: block;
+  max-width: 100%;
+  margin: 0 auto; /* Center horizontally */
+  padding: 20px;
 }
 
 .modal-info {
-  padding: 15px 30px;
+  padding: 10px 20px;
   background-color: #f9fafb;
   border-top: 1px solid #e5e7eb;
   text-align: center;
   font-size: 0.9rem;
   color: var(--text-dark);
+  flex-shrink: 0;
 }
 
 @media (max-width: 768px) {
@@ -575,12 +579,12 @@ main {
   }
 
   .modal-content {
-    max-width: 95%;
-    max-height: 85%;
+    width: 95%;
+    height: 85%;
   }
 
-  .modal-image-container {
-    padding: 20px 15px;
+  .modal-image-container img {
+    padding: 15px;
   }
 
   .close-modal {
