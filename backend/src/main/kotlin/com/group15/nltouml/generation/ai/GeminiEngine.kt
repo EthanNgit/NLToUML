@@ -51,12 +51,13 @@ data class GenerationConfig(
 
 @Service("generator_gemini")
 class GeminiEngine(
-    @Value("\${gemini.api.key}") private val geminiApiKey: String
+    @Value("\${gemini.api.key}") private val geminiApiKey: String,
+    @Value("\${gemini.model.name}") private val geminiModelName: String,
 ): AiEngine {
     private val logger = LoggerFactory.getLogger(GeminiEngine::class.java)
 
     private val webClient = WebClient.builder()
-        .baseUrl("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent")
+        .baseUrl("https://generativelanguage.googleapis.com/v1beta/models/${geminiModelName}:generateContent")
         .defaultHeader("Content-Type", "application/json")
         .build()
 

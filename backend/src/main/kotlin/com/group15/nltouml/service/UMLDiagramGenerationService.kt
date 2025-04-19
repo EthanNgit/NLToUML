@@ -26,7 +26,8 @@ class UMLDiagramGenerationService(
 
         val uml = aiEngine.convertTextInputToUMLSyntax(text, diagramType, plantUMLEngine.getSyntaxForDiagramType(diagramType))
         logger.debug("Generated diagram syntex for $diagramType diagram with result $uml")
-        val diagram = plantUMLEngine.textToDiagram(uml)
+
+        val diagram = plantUMLEngine.textToDiagram(uml, 3)
 
         return diagram
     }
