@@ -19,7 +19,7 @@ class DeepSeekEngine(
     @Value("\${deepseek.model.name}") private val deepSeekModelName: String,
 
 ): AiEngine {
-    private val logger = LoggerFactory.getLogger(GeminiEngine::class.java)
+    private val logger = LoggerFactory.getLogger(DeepSeekEngine::class.java)
 
     private val webClient = WebClient.builder()
         .baseUrl("https://api.deepseek.com/v1/chat/completions")
@@ -35,9 +35,11 @@ class DeepSeekEngine(
                 mapOf("role" to "user", "content" to """
                      You only output JSON. Don't include any explanations or introductions.
                      Based on the user requirements "$input", generate the UML syntax for the "$diagramType" diagram.
-                     Where an example of its syntax looks like "$syntax". Return in json format
+                     Where an example of its syntax looks like "$syntax". Return in json format.
+                     Since the result is in json, it is important to make sure the output is properly escaped and parsable
+                     Example "1" -- "1" -> \"1\" -- \"1\"
                      { 
-                        "uml": "..." 
+                        "uml": "..."
                      }
                 """.trimIndent())
             ),
