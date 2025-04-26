@@ -10,10 +10,10 @@ import java.util.*
 @Service("uml_plantuml")
 class PlantUMLEngine: UMLEngine {
     val themeMap: Map<Int, String> = listOf(
-        "default", "amiga", "aws-orange", "black-knight", "bluegray", "blueprint", "carbon-gray",
+        "none", "amiga", "aws-orange", "black-knight", "bluegray", "blueprint", "carbon-gray",
         "cerulean-outline", "cerulean", "cloudscape-design", "crt-amber", "crt-green",
         "cyborg-outline", "cyborg", "hacker", "lightgray", "mars", "materia-outline",
-        "materia", "metal", "mimeograph", "minty", "mono", "none", "plain",
+        "materia", "metal", "mimeograph", "minty", "mono", "plain",
         "reddress-darkblue", "reddress-darkgreen", "reddress-darkorange", "reddress-darkred",
         "reddress-lightblue", "reddress-lightgreen", "reddress-lightorange", "reddress-lightred",
         "sandstone", "silver", "sketchy-outline", "sketchy", "spacelab-white", "spacelab",
@@ -27,8 +27,6 @@ class PlantUMLEngine: UMLEngine {
         val outputStream = ByteArrayOutputStream()
         val desc = reader.outputImage(outputStream)
 
-        println("output desc: $desc")
-
         if (desc == null || desc.description?.contains("(Error)") == true) {
             throw IllegalArgumentException("PlantUML syntax error detected.")
         }
@@ -40,12 +38,7 @@ class PlantUMLEngine: UMLEngine {
         if (!input.contains("@enduml") || !input.contains("@startuml")) {
             throw IllegalArgumentException("PlantUML syntax error detected.")
         }
-        val theme = themeMap[themeId]
-
-        if (themeId == 0 || theme == null) {
-            // no theme
-            return input
-        }
+        val theme = themeMap[themeId] ?: return input // no theme
 
         // add "!theme name" after @startuml
         return input.replaceFirst("@startuml", "@startuml\n!theme $theme")

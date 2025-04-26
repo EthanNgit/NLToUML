@@ -8,6 +8,9 @@ services:
       - GEMINI_MODEL_NAME=${GEMINI_MODEL_NAME}
       - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
       - DEEPSEEK_MODEL_NAME=${DEEPSEEK_MODEL_NAME}
+      - PROMPTS_PATH=/etc/llm-prompts
+    volumes:
+      - ./prompts:/etc/llm-prompts
     ports:
       - "8080:8080"
     restart: always

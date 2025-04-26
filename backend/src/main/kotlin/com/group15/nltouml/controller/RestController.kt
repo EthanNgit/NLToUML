@@ -1,8 +1,6 @@
 package com.group15.nltouml.controller
 
-import com.group15.nltouml.model.AiEngineModel
 import com.group15.nltouml.model.DiagramType
-import com.group15.nltouml.model.MethodBody
 import com.group15.nltouml.service.UMLDiagramGenerationService
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus
@@ -24,7 +22,7 @@ class RestController(
     data class ClientProcessBody (
         val text: String,
         val diagramType: DiagramType,
-        val generationMethod: AiEngineModel,
+        val generationMethod: String,
     )
 
     @PostMapping("/process", produces = [MediaType.IMAGE_PNG_VALUE])
@@ -48,7 +46,7 @@ class RestController(
     }
 
     @GetMapping("/methods")
-    fun getMethods(): ResponseEntity<List<String>> {
+    suspend fun getMethods(): ResponseEntity<List<String>> {
         val methods = umlDiagramGenerationService.getAvailableAi()
 
         return ResponseEntity(methods, HttpStatus.OK)

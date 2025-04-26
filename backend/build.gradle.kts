@@ -30,6 +30,9 @@ dependencies {
 
 	// Plant UML
 	implementation("net.sourceforge.plantuml:plantuml:1.2024.1")
+
+	// Concurrency
+	implementation("org.jetbrains.kotlinx:kotlinx-coroutines-reactor")
 }
 
 kotlin {

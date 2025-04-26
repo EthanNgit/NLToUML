@@ -2,12 +2,21 @@ package com.group15.nltouml.generation.ai
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.group15.nltouml.model.DiagramType
+import com.group15.nltouml.service.PromptFileService
+import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
 
 @Service("generator_local")
-class LocalEngine: AiEngine {
+class LocalEngine(
+    @Value("\${local.api-key}") private val apiKey: String,
+    @Value("\${local.model-name}") private val modelName: String,
+    @Value("\${local.prompt-file}") private val promptFileName: String,
+    @Autowired private val promptFileService: PromptFileService,
+): AiEngine {
     private val logger = LoggerFactory.getLogger(LocalEngine::class.java)
 
     private val webClient = WebClient.builder()
@@ -17,18 +26,10 @@ class LocalEngine: AiEngine {
 
     override fun convertTextInputToUMLSyntax(input: String, diagramType: DiagramType, syntax: String): String {
         val objectMapper = jacksonObjectMapper()
+        val prompt = promptFileService.getNlToUMLPrompt(input, diagramType, syntax, promptFileName)
 
         val requestBody = mapOf(
-            "prompt" to """
-                 You only output JSON. Don't include any explanations or introductions.
-                 Based on the user requirements "$input", generate the UML syntax for the "$diagramType" diagram.
-                 Where an example of its syntax looks like "$syntax". Return in json format.
-                 Since the result is in json, it is important to make sure the output is properly escaped and parsable
-                 Example "1" -- "1" -> \"1\" -- \"1\"
-                 { 
-                    "uml": "..."
-                 }
-            """.trimIndent(),
+            "prompt" to prompt,
             "temperature" to 0.0
         )
 
@@ -45,6 +46,27 @@ class LocalEngine: AiEngine {
         } catch (e: Exception) {
             logger.error("Error during AI call", e)
             "Error: ${e.message}"
+        }
+    }
+
+    override suspend fun ping(): Boolean {
+        val requestBody = mapOf(
+            "prompt" to "ping",
+            "temperature" to 0.0,
+            "max_tokens" to 1
+        )
+
+        return try {
+            val res = webClient.post()
+                .bodyValue(requestBody)
+                .retrieve()
+                .toBodilessEntity()
+                .awaitSingle()
+
+            res.statusCode.is2xxSuccessful
+        } catch (e: Exception) {
+            logger.error("Error during AI call", e)
+            false
         }
     }
 }

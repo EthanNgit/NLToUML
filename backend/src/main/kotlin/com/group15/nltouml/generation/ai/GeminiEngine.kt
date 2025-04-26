@@ -4,10 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.group15.nltouml.model.AiEngineModel
 import com.group15.nltouml.model.AiResponseJson
 import com.group15.nltouml.model.DiagramType
+import com.group15.nltouml.service.PromptFileService
+import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
@@ -46,40 +48,32 @@ data class PartItem(
 )
 
 data class GenerationConfig(
-    val temperature: Double
+    val temperature: Double,
+    val maxOutputTokens: Int = 1000
 )
 
 @Service("generator_gemini")
 class GeminiEngine(
-    @Value("\${gemini.api.key}") private val geminiApiKey: String,
-    @Value("\${gemini.model.name}") private val geminiModelName: String,
+    @Value("\${gemini.api-key}") private val apiKey: String,
+    @Value("\${gemini.model-name}") private val modelName: String,
+    @Value("\${gemini.prompt-file}") private val promptFileName: String,
+    @Autowired private val promptFileService: PromptFileService,
 ): AiEngine {
     private val logger = LoggerFactory.getLogger(GeminiEngine::class.java)
 
     private val webClient = WebClient.builder()
-        .baseUrl("https://generativelanguage.googleapis.com/v1beta/models/${geminiModelName}:generateContent")
+        .baseUrl("https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent")
         .defaultHeader("Content-Type", "application/json")
         .build()
 
     override fun convertTextInputToUMLSyntax(input: String, diagramType: DiagramType, syntax: String): String {
+        val prompt = promptFileService.getNlToUMLPrompt(input, diagramType, syntax, promptFileName)
+
         val requestBody = GeminiRequest(
             contents = listOf(
                 ContentItem(
                     role = "user",
-                    parts = listOf(
-                        PartItem(
-                            text = """
-                                 You only output JSON. Don't include any explanations or introductions.
-                                 Based on the user requirements "$input", generate the UML syntax for the "$diagramType" diagram.
-                                 Where an example of its syntax looks like "$syntax". Return in json format.
-                                 Since the result is in json, it is important to make sure the output is properly escaped and parsable
-                                 Example "1" -- "1" -> \"1\" -- \"1\"
-                                 { 
-                                    "uml": "..."
-                                 }
-                            """.trimIndent()
-                        )
-                    )
+                    parts = listOf(PartItem(text = prompt))
                 )
             ),
             generationConfig = GenerationConfig(temperature = 0.0)
@@ -88,7 +82,7 @@ class GeminiEngine(
         return try {
             webClient.post()
                 .uri { uriBuilder ->
-                    uriBuilder.queryParam("key", geminiApiKey).build()
+                    uriBuilder.queryParam("key", apiKey).build()
                 }
                 .bodyValue(requestBody)
                 .retrieve()
@@ -111,4 +105,35 @@ class GeminiEngine(
             "Error: ${e.message}"
         }
     }
+
+    override suspend fun ping(): Boolean {
+        val requestBody = GeminiRequest(
+            contents = listOf(
+                ContentItem(
+                    role = "user",
+                    parts = listOf(
+                        PartItem(text = "ping")
+                    )
+                )
+            ),
+            generationConfig = GenerationConfig(temperature = 0.0, maxOutputTokens = 1)
+        )
+
+        return try {
+            val res = webClient.post()
+                .uri { uriBuilder ->
+                    uriBuilder.queryParam("key", apiKey).build()
+                }
+                .bodyValue(requestBody)
+                .retrieve()
+                .toBodilessEntity()
+                .awaitSingle()
+
+            res.statusCode.is2xxSuccessful
+        } catch (e: Exception) {
+            logger.error("Error during AI call", e)
+            false
+        }
+    }
 }
+

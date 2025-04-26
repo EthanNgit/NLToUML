@@ -4,5 +4,5 @@ import com.group15.nltouml.model.DiagramType
 
 interface AiEngine {
     fun convertTextInputToUMLSyntax(input: String, diagramType: DiagramType, syntax: String): String
-
+    suspend fun ping(): Boolean
 }

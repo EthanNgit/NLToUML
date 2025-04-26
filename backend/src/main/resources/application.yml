@@ -1,0 +1,29 @@
+spring:
+  application:
+      name: nltouml
+
+logging:
+  level:
+    com:
+      group15:
+        nltouml: trace
+
+openai:
+      api-key: ${OPENAI_API_KEY}
+      model-name: ${OPENAI_MODEL_NAME}
+      prompt-file: default-prompt.txt
+deepseek:
+      api-key: ${DEEPSEEK_API_KEY}
+      model-name: ${DEEPSEEK_MODEL_NAME}
+      prompt-file: default-prompt.txt
+gemini:
+      api-key: ${GEMINI_API_KEY}
+      model-name: ${GEMINI_MODEL_NAME}
+      prompt-file: default-prompt.txt
+local:
+      api-key: empty
+      model-name: empty
+      prompt-file: default-prompt.txt
+
+prompts:
+  path: ${PROMPTS_PATH}
