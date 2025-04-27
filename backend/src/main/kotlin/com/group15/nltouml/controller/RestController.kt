@@ -32,13 +32,6 @@ class RestController(
         return ResponseEntity(image, HttpStatus.CREATED)
     }
 
-    @PostMapping("/test")
-    fun test(@RequestBody body: ClientProcessBody): ResponseEntity<String> {
-        val image = umlDiagramGenerationService.test(body.text, body.diagramType, body.generationMethod)
-
-        return ResponseEntity(image, HttpStatus.CREATED)
-    }
-
     @GetMapping("/diagrams")
     fun getDiagrams(): ResponseEntity<List<String>> {
         val types = umlDiagramGenerationService.getAvailableDiagramTypes()

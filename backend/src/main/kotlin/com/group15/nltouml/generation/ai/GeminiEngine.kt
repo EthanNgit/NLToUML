@@ -1,11 +1,9 @@
 package com.group15.nltouml.generation.ai
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import com.group15.nltouml.model.AiResponseJson
-import com.group15.nltouml.model.DiagramType
+import com.group15.nltouml.model.*
 import com.group15.nltouml.service.PromptFileService
 import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
@@ -13,44 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-
-// Gemini response structure
-data class GeminiResponse(
-    val candidates: List<Candidate>
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Candidate(
-    val content: Content
-)
-
-data class Content(
-    val parts: List<Part>
-)
-
-data class Part(
-    val text: String // as json
-)
-
-// Gemini request structure
-data class GeminiRequest(
-    val contents: List<ContentItem>,
-    val generationConfig: GenerationConfig
-)
-
-data class ContentItem(
-    val role: String,
-    val parts: List<PartItem>
-)
-
-data class PartItem(
-    val text: String
-)
-
-data class GenerationConfig(
-    val temperature: Double,
-    val maxOutputTokens: Int = 1000
-)
 
 @Service("generator_gemini")
 class GeminiEngine(

@@ -5,7 +5,6 @@ import com.group15.nltouml.util.titlecase
 import net.sourceforge.plantuml.SourceStringReader
 import org.springframework.stereotype.Service
 import java.io.ByteArrayOutputStream
-import java.util.*
 
 @Service("uml_plantuml")
 class PlantUMLEngine: UMLEngine {
@@ -38,7 +37,7 @@ class PlantUMLEngine: UMLEngine {
         if (!input.contains("@enduml") || !input.contains("@startuml")) {
             throw IllegalArgumentException("PlantUML syntax error detected.")
         }
-        val theme = themeMap[themeId] ?: return input // no theme
+        val theme = themeMap[themeId] ?: return input
 
         // add "!theme name" after @startuml
         return input.replaceFirst("@startuml", "@startuml\n!theme $theme")
@@ -111,7 +110,6 @@ class PlantUMLEngine: UMLEngine {
             }
             @enduml
         """.trimIndent()
-
             DiagramType.UseCase -> """
             PlantUML, here is a rundown of some basic syntax for reference, do not use color, theme, note, or comments.
 
@@ -145,7 +143,6 @@ class PlantUMLEngine: UMLEngine {
     
             @enduml
         """.trimIndent()
-
             DiagramType.Component -> """
             PlantUML, here is a rundown of some basic syntax for reference, do not use color, theme, note, or comments.
 
@@ -178,7 +175,6 @@ class PlantUMLEngine: UMLEngine {
             Backend --> Auth : validates
             @enduml
         """.trimIndent()
-
             DiagramType.Sequence -> """
             PlantUML, here is a rundown of some basic syntax for reference, do not use color, theme, note, or comments.
 
@@ -246,7 +242,6 @@ class PlantUMLEngine: UMLEngine {
     
             @enduml
         """.trimIndent()
-
             DiagramType.Activity -> """
             PlantUML, here is a rundown of some basic syntax for reference, do not use color, theme, note, or comments.
 
@@ -304,7 +299,6 @@ class PlantUMLEngine: UMLEngine {
             stop
             @enduml
         """.trimIndent()
-
             else -> ""
         }
     }
@@ -324,6 +318,7 @@ class PlantUMLEngine: UMLEngine {
     }
 
     override fun getAvailableDiagramFileTypes(): List<String> {
+        // not used yet, but easily addable, also hardcode for now
         return listOf("png", "svg")
     }
 }

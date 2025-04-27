@@ -6,7 +6,7 @@ fun titlecase(str: String): String {
 
 fun titlecase(str: String, delimiters: CharArray?): String {
     val delimLen = (delimiters?.size ?: -1)
-    if (str == null || str.length == 0 || delimLen == 0) {
+    if (str.isEmpty() || delimLen == 0) {
         return str
     }
     val strLen = str.length

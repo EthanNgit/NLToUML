@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.group15.nltouml.model.AiResponseJson
 import com.group15.nltouml.model.DiagramType
+import com.group15.nltouml.model.OpenAIResponse
 import com.group15.nltouml.service.PromptFileService
 import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
@@ -12,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-
 
 @Service("generator_deepseek")
 class DeepSeekEngine(

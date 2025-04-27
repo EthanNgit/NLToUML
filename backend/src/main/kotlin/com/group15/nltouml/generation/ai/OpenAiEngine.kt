@@ -1,11 +1,11 @@
 package com.group15.nltouml.generation.ai
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.group15.nltouml.model.AiResponseJson
 import com.group15.nltouml.model.DiagramType
+import com.group15.nltouml.model.OpenAIResponse
 import com.group15.nltouml.service.PromptFileService
 import kotlinx.coroutines.reactor.awaitSingle
 import org.slf4j.LoggerFactory
@@ -13,21 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.web.reactive.function.client.WebClient
-
-
-data class OpenAIResponse(
-    val choices: List<Choice>
-)
-
-@JsonIgnoreProperties(ignoreUnknown = true)
-data class Choice(
-    val message: Message
-)
-
-data class Message(
-    val content: String // as json
-)
-
 
 @Service("generator_openai")
 class OpenAiEngine(

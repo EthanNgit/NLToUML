@@ -8,6 +8,7 @@ logging:
       group15:
         nltouml: trace
 
+# TODO: Could extract this out
 openai:
       api-key: ${OPENAI_API_KEY}
       model-name: ${OPENAI_MODEL_NAME}
