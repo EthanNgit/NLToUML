@@ -12,19 +12,24 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Service("generator_local")
 class LocalEngine(
-    @Value("\${local.api-key}") private val apiKey: String,
-    @Value("\${local.model-name}") private val modelName: String,
-    @Value("\${local.prompt-file}") private val promptFileName: String,
+    @Value("\${llms.local.enabled}") private val enabled: Boolean,
+    @Value("\${llms.local.base-url}") private val baseUrl: String,
+    @Value("\${llms.local.endpoint}") private val endpoint: String,
+    @Value("\${llms.local.api-key}") private val apiKey: String,
+    @Value("\${llms.local.model-name}") private val modelName: String,
+    @Value("\${llms.local.prompt-file}") private val promptFileName: String,
     @Autowired private val promptFileService: PromptFileService,
 ): AiEngine {
     private val logger = LoggerFactory.getLogger(LocalEngine::class.java)
 
     private val webClient = WebClient.builder()
-        .baseUrl("http://csai01:8000/generate")
+        .baseUrl("$baseUrl$endpoint")
         .defaultHeader("Content-Type", "application/json")
         .build()
 
     override fun convertTextInputToUMLSyntax(input: String, diagramType: DiagramType, syntax: String): String {
+        if (!enabled) return "llm not enabled"
+
         val objectMapper = jacksonObjectMapper()
         val prompt = promptFileService.getNlToUMLPrompt(input, diagramType, syntax, promptFileName)
 
@@ -50,6 +55,8 @@ class LocalEngine(
     }
 
     override suspend fun ping(): Boolean {
+        if (!enabled) return false
+
         val requestBody = mapOf(
             "prompt" to "ping",
             "temperature" to 0.0,

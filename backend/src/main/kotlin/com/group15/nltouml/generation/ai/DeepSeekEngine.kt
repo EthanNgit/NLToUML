@@ -16,20 +16,25 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Service("generator_deepseek")
 class DeepSeekEngine(
-    @Value("\${deepseek.api-key}") private val apiKey: String,
-    @Value("\${deepseek.model-name}") private val modelName: String,
-    @Value("\${deepseek.prompt-file}") private val promptFileName: String,
+    @Value("\${llms.deepseek.enabled}") private val enabled: Boolean,
+    @Value("\${llms.deepseek.base-url}") private val baseUrl: String,
+    @Value("\${llms.deepseek.endpoint}") private val endpoint: String,
+    @Value("\${llms.deepseek.api-key}") private val apiKey: String,
+    @Value("\${llms.deepseek.model-name}") private val modelName: String,
+    @Value("\${llms.deepseek.prompt-file}") private val promptFileName: String,
     @Autowired private val promptFileService: PromptFileService,
 ): AiEngine {
     private val logger = LoggerFactory.getLogger(DeepSeekEngine::class.java)
 
     private val webClient = WebClient.builder()
-        .baseUrl("https://api.deepseek.com/v1/chat/completions")
+        .baseUrl("$baseUrl$endpoint")
         .defaultHeader("Authorization", "Bearer $apiKey")
         .defaultHeader("Content-Type", "application/json")
         .build()
 
     override fun convertTextInputToUMLSyntax(input: String, diagramType: DiagramType, syntax: String): String {
+        if (!enabled) return "llm not enabled"
+
         val prompt = promptFileService.getNlToUMLPrompt(input, diagramType, syntax, promptFileName)
 
         val requestBody = mapOf(
@@ -68,6 +73,8 @@ class DeepSeekEngine(
     }
 
     override suspend fun ping(): Boolean {
+        if (!enabled) return false
+
         val requestBody = mapOf(
             "model" to modelName,
             "messages" to listOf(

@@ -14,19 +14,24 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Service("generator_gemini")
 class GeminiEngine(
-    @Value("\${gemini.api-key}") private val apiKey: String,
-    @Value("\${gemini.model-name}") private val modelName: String,
-    @Value("\${gemini.prompt-file}") private val promptFileName: String,
+    @Value("\${llms.gemini.enabled}") private val enabled: Boolean,
+    @Value("\${llms.gemini.base-url}") private val baseUrl: String,
+    @Value("\${llms.gemini.endpoint}") private val endpoint: String,
+    @Value("\${llms.gemini.api-key}") private val apiKey: String,
+    @Value("\${llms.gemini.model-name}") private val modelName: String,
+    @Value("\${llms.gemini.prompt-file}") private val promptFileName: String,
     @Autowired private val promptFileService: PromptFileService,
 ): AiEngine {
     private val logger = LoggerFactory.getLogger(GeminiEngine::class.java)
 
     private val webClient = WebClient.builder()
-        .baseUrl("https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent")
+        .baseUrl("$baseUrl$endpoint")
         .defaultHeader("Content-Type", "application/json")
         .build()
 
     override fun convertTextInputToUMLSyntax(input: String, diagramType: DiagramType, syntax: String): String {
+        if (!enabled) return "llm not enabled"
+
         val prompt = promptFileService.getNlToUMLPrompt(input, diagramType, syntax, promptFileName)
 
         val requestBody = GeminiRequest(
@@ -67,6 +72,8 @@ class GeminiEngine(
     }
 
     override suspend fun ping(): Boolean {
+        if (!enabled) return false
+
         val requestBody = GeminiRequest(
             contents = listOf(
                 ContentItem(

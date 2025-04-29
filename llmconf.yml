@@ -1,0 +1,29 @@
+llms:
+  openai:
+    enabled: ${OPENAI_ENABLED:false}
+    base-url: ${OPENAI_BASE_URL}
+    endpoint: ${OPENAI_ENDPOINT}
+    api-key: ${OPENAI_API_KEY}
+    model-name: ${OPENAI_MODEL_NAME}
+    prompt-file: ${OPENAI_PROMPT_FILE}
+  deepseek:
+    enabled: ${DEEPSEEK_ENABLED:false}
+    base-url: ${DEEPSEEK_BASE_URL}
+    endpoint: ${DEEPSEEK_ENDPOINT}
+    api-key: ${DEEPSEEK_API_KEY}
+    model-name: ${DEEPSEEK_MODEL_NAME}
+    prompt-file: ${DEEPSEEK_PROMPT_FILE}
+  gemini:
+    enabled: ${GEMINI_ENABLED:false}
+    base-url: ${GEMINI_BASE_URL}
+    endpoint: ${GEMINI_ENDPOINT}
+    api-key: ${GEMINI_API_KEY}
+    model-name: ${GEMINI_MODEL_NAME}
+    prompt-file: ${GEMINI_PROMPT_FILE}
+  local:
+    enabled: ${LOCAL_ENABLED:false}
+    base-url: ${LOCAL_BASE_URL}
+    endpoint: ${LOCAL_ENDPOINT}
+    api-key: ${LOCAL_API_KEY}
+    model-name: ${LOCAL_MODEL_NAME}
+    prompt-file: ${LOCAL_PROMPT_FILE}

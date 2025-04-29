@@ -16,20 +16,25 @@ import org.springframework.web.reactive.function.client.WebClient
 
 @Service("generator_openai")
 class OpenAiEngine(
-    @Value("\${openai.api-key}") private val apiKey: String,
-    @Value("\${openai.model-name}") private val modelName: String,
-    @Value("\${openai.prompt-file}") private val promptFileName: String,
+    @Value("\${llms.openai.enabled}") private val enabled: Boolean,
+    @Value("\${llms.openai.base-url}") private val baseUrl: String,
+    @Value("\${llms.openai.endpoint}") private val endpoint: String,
+    @Value("\${llms.openai.api-key}") private val apiKey: String,
+    @Value("\${llms.openai.model-name}") private val modelName: String,
+    @Value("\${llms.openai.prompt-file}") private val promptFileName: String,
     @Autowired private val promptFileService: PromptFileService,
 ): AiEngine {
     private val logger = LoggerFactory.getLogger(OpenAiEngine::class.java)
 
     private val webClient = WebClient.builder()
-        .baseUrl("https://api.openai.com/v1/chat/completions")
+        .baseUrl("$baseUrl$endpoint")
         .defaultHeader("Authorization", "Bearer $apiKey")
         .defaultHeader("Content-Type", "application/json")
         .build()
 
     override fun convertTextInputToUMLSyntax(input: String, diagramType: DiagramType, syntax: String): String {
+        if (!enabled) return "llm not enabled"
+
         val prompt = promptFileService.getNlToUMLPrompt(input, diagramType, syntax, promptFileName)
 
         val requestBody = mapOf(
@@ -68,6 +73,8 @@ class OpenAiEngine(
     }
 
     override suspend fun ping(): Boolean {
+        if (!enabled) return false
+
         val requestBody = mapOf(
             "model" to modelName,
             "messages" to listOf(
